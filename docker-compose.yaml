@@ -1,0 +1,87 @@
+version: "3.9"
+
+services:
+
+  mysql-db:
+    image: mysql:8.0
+    container_name: mysql-db
+    restart: unless-stopped
+
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: myapp
+      MYSQL_USER: myuser
+      MYSQL_PASSWORD: mypassword
+
+    ports:
+      - "3308:3306"
+
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+    networks:
+      - three-tier-network
+
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+
+    image: backend:v1
+
+    container_name: backend
+
+    restart: unless-stopped
+
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+
+    environment:
+      MYSQL_HOST: mysql-db
+      MYSQL_PORT: 3306
+      MYSQL_USER: myuser
+      MYSQL_PASSWORD: mypassword
+      MYSQL_DATABASE: myapp
+
+    ports:
+      - "5001:5000"
+
+    networks:
+      three-tier-network:
+        aliases:
+          - be-svc.backend-ns.svc.cluster.local
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+
+    image: frontend:v1
+
+    container_name: frontend
+
+    restart: unless-stopped
+
+    depends_on:
+      - backend
+
+    ports:
+      - "3000:80"
+
+    networks:
+      - three-tier-network
+
+networks:
+  three-tier-network:
+
+volumes:
+  mysql-data:
+
+

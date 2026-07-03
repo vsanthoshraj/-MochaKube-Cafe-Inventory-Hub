@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MochaKube - Cafe & Inventory Dashboard</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Main Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="glass-bg"></div>
+
+    <div class="app-container">
+        <!-- Kubernetes Test Status Bar -->
+        <header class="k8s-status-bar">
+            <div class="logo">
+                <i class="fa-solid fa-mug-hot logo-icon"></i>
+                <div class="logo-text">
+                    <h1>MochaKube</h1>
+                    <span>Cafe & Inventory Hub</span>
+                </div>
+            </div>
+            
+            <div class="k8s-stats">
+                <div class="stat-badge k8s-pod">
+                    <span class="badge-label"><i class="fa-solid fa-cubes"></i> Pod Host:</span>
+                    <span id="pod-hostname" class="badge-value loading">Loading...</span>
+                </div>
+                <div class="stat-badge k8s-db">
+                    <span class="badge-label"><i class="fa-solid fa-database"></i> DB Host:</span>
+                    <span id="db-host" class="badge-value loading">Loading...</span>
+                </div>
+                <div class="stat-badge k8s-status">
+                    <span class="badge-label"><i class="fa-solid fa-heartbeat"></i> Health:</span>
+                    <span id="health-status" class="badge-value status-unknown">Unknown</span>
+                </div>
+                <button id="btn-refresh-info" class="icon-btn" title="Refresh Host & Stats">
+                    <i class="fa-solid fa-arrows-rotate"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Navigation Tabs -->
+        <nav class="nav-tabs">
+            <button class="tab-btn active" data-tab="shop-tab">
+                <i class="fa-solid fa-store"></i> Cafe Menu
+            </button>
+            <button class="tab-btn" data-tab="inventory-tab">
+                <i class="fa-solid fa-boxes-stacked"></i> Inventory Manager
+            </button>
+            <button class="tab-btn" data-tab="orders-tab">
+                <i class="fa-solid fa-receipt"></i> Order Logs
+            </button>
+            <button class="tab-btn" data-tab="admin-tab">
+                <i class="fa-solid fa-sliders"></i> Configurations
+            </button>
+        </nav>
+
+        <!-- Main Workspace -->
+        <main class="workspace-content">
+            
+            <!-- TAB 1: CAFE SHOP -->
+            <section id="shop-tab" class="tab-content active">
+                <div class="shop-layout">
+                    <div class="menu-showcase">
+                        <div class="section-header">
+                            <h2>Freshly Brewed Menu</h2>
+                            <div class="category-filters">
+                                <button class="filter-btn active" data-category="all">All Items</button>
+                                <button class="filter-btn" data-category="Coffee">Coffee</button>
+                                <button class="filter-btn" data-category="Beverage">Beverages</button>
+                                <button class="filter-btn" data-category="Bakery">Bakery</button>
+                            </div>
+                        </div>
+                        <div class="menu-grid" id="shop-menu-grid">
+                            <!-- Populated by JavaScript -->
+                            <div class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Loading menu...</div>
+                        </div>
+                    </div>
+
+                    <!-- Slide out / side cart -->
+                    <div class="order-cart">
+                        <h3><i class="fa-solid fa-cart-shopping"></i> Active Order</h3>
+                        <div class="cart-items" id="cart-items-list">
+                            <p class="empty-cart-msg">Your tray is empty. Select items from the menu to start order.</p>
+                        </div>
+                        <div class="cart-summary">
+                            <div class="summary-row">
+                                <span>Subtotal</span>
+                                <span id="cart-subtotal">$0.00</span>
+                            </div>
+                            <div class="summary-row total">
+                                <span>Total</span>
+                                <span id="cart-total">$0.00</span>
+                            </div>
+                            <button id="btn-place-order" class="btn btn-primary btn-block" disabled>
+                                <i class="fa-solid fa-check"></i> Complete Order
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 2: INVENTORY MANAGER -->
+            <section id="inventory-tab" class="tab-content">
+                <div class="inventory-container">
+                    <div class="section-header">
+                        <div>
+                            <h2>Real-Time Inventory Status</h2>
+                            <p>Automatic ingredient deduction triggers when orders are successfully placed.</p>
+                        </div>
+                        <button class="btn btn-secondary" onclick="openModal('add-inventory-modal')">
+                            <i class="fa-solid fa-plus"></i> Add New Ingredient
+                        </button>
+                    </div>
+
+                    <div class="inventory-grid" id="inventory-items-grid">
+                        <!-- Populated by JavaScript -->
+                        <div class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Loading inventory...</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 3: ORDER LOGS -->
+            <section id="orders-tab" class="tab-content">
+                <div class="orders-container">
+                    <div class="section-header">
+                        <h2>Sales & Order History</h2>
+                        <span class="revenue-tracker">Total Revenue: <strong id="total-revenue">$0.00</strong></span>
+                    </div>
+
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Timestamp</th>
+                                    <th>Ordered Items</th>
+                                    <th>Total Cost</th>
+                                </tr>
+                            </thead>
+                            <tbody id="orders-table-body">
+                                <!-- Populated by JavaScript -->
+                                <tr>
+                                    <td colspan="4" class="text-center">No orders registered yet.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 4: ADMIN / CONFIGURATIONS -->
+            <section id="admin-tab" class="tab-content">
+                <div class="admin-grid">
+                    <!-- Create Menu Item Form -->
+                    <div class="admin-card">
+                        <h3><i class="fa-solid fa-plus-circle"></i> Create Menu Item</h3>
+                        <form id="create-menu-form" class="admin-form">
+                            <div class="form-group">
+                                <label for="menu-name">Item Name</label>
+                                <input type="text" id="menu-name" placeholder="e.g. Iced Latte" required>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="menu-price">Price ($)</label>
+                                    <input type="number" id="menu-price" step="0.01" min="0.10" placeholder="e.g. 4.75" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="menu-category">Category</label>
+                                    <select id="menu-category" required>
+                                        <option value="Coffee">Coffee</option>
+                                        <option value="Beverage">Beverages</option>
+                                        <option value="Bakery">Bakery</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="menu-image">Unsplash Image URL (Optional)</label>
+                                <input type="url" id="menu-image" placeholder="https://images.unsplash.com/...">
+                            </div>
+
+                            <div class="ingredients-selector-section">
+                                <label>Recipe Ingredients</label>
+                                <div class="ingredients-list-inputs" id="recipe-ingredients-container">
+                                    <!-- Dynamic rows of ingredient + quantity needed -->
+                                </div>
+                                <button type="button" class="btn btn-text btn-small" id="btn-add-recipe-ingredient">
+                                    <i class="fa-solid fa-plus"></i> Add Ingredient to Recipe
+                                </button>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-block">
+                                <i class="fa-solid fa-save"></i> Save Menu Item
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Delete Menu Items Table -->
+                    <div class="admin-card">
+                        <h3><i class="fa-solid fa-trash-can"></i> Manage Menu Items</h3>
+                        <div class="menu-list-admin-container">
+                            <table class="data-table small">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Price</th>
+                                        <th>Category</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-menu-table-body">
+                                    <!-- Populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- RESTOCK MODAL -->
+    <div id="restock-modal" class="modal">
+        <div class="modal-content glass-card">
+            <span class="close-btn" onclick="closeModal('restock-modal')">&times;</span>
+            <h3 id="restock-title">Restock Ingredient</h3>
+            <form id="restock-form" class="modal-form">
+                <input type="hidden" id="restock-item-id">
+                <div class="form-group">
+                    <label for="restock-qty">Quantity to Add</label>
+                    <div class="input-unit-group">
+                        <input type="number" id="restock-qty" step="0.01" min="0.01" required>
+                        <span id="restock-unit-label" class="input-unit">g</span>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Confirm Restock</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ADD INVENTORY MODAL -->
+    <div id="add-inventory-modal" class="modal">
+        <div class="modal-content glass-card">
+            <span class="close-btn" onclick="closeModal('add-inventory-modal')">&times;</span>
+            <h3>Add New Inventory Ingredient</h3>
+            <form id="add-inventory-form" class="modal-form">
+                <div class="form-group">
+                    <label for="inv-item-name">Ingredient Name</label>
+                    <input type="text" id="inv-item-name" placeholder="e.g. Whipped Cream" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="inv-qty">Initial Quantity</label>
+                        <input type="number" id="inv-qty" step="0.01" min="0.00" value="0.00" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="inv-unit">Measurement Unit</label>
+                        <select id="inv-unit" required>
+                            <option value="g">Grams (g)</option>
+                            <option value="ml">Milliliters (ml)</option>
+                            <option value="pcs">Pieces (pcs)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="inv-min">Warning Alert Threshold (Min quantity)</label>
+                    <input type="number" id="inv-min" step="0.01" min="0.00" value="10.00" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Create Ingredient</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="toast"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
