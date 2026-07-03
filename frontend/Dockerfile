@@ -1,14 +1,15 @@
-# Base image
-FROM nginx:alpine
+FROM nginx:1.31-alpine
 
-# Copy static frontend files to Nginx public folder
-COPY . /usr/share/nginx/html
+RUN apk add --no-cache gettext
 
-# Copy custom Nginx configuration
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY . /usr/share/nginx/html/
 
-# Expose port 80
-EXPOSE 80
+COPY nginx.conf.template /etc/nginx/templates/nginx.conf.template
 
-# Start Nginx
-CMD ["nginx", "-g", "daemon off;"]
+COPY entrypoint.sh /entrypoint.sh
+
+RUN chmod +x /entrypoint.sh
+
+EXPOSE 8080
+
+ENTRYPOINT ["/entrypoint.sh"]
